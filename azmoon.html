@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>آزمون ریاضی تعاملی</title>
+<style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:"Tahoma","Segoe UI",sans-serif; }
+    body { background:#f0f2f5; display:flex; justify-content:center; align-items:center; min-height:100vh; padding:10px; }
+    .quiz-container { width:100%; max-width:500px; background:#fff; border-radius:20px; box-shadow:0 10px 30px rgba(0,0,0,0.1); overflow:hidden; }
+    .header { background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:20px; text-align:center; font-size:1.4rem; font-weight:bold; }
+    .progress { background:rgba(255,255,255,0.2); height:8px; margin-top:10px; border-radius:4px; overflow:hidden; }
+    .progress-bar { height:100%; width:0%; background:#fff; transition:width 0.4s ease; }
+    .question-container { padding:30px 20px; text-align:center; min-height:60vh; display:flex; flex-direction:column; justify-content:space-between; }
+    .question { font-size:1.8rem; font-weight:bold; color:#333; margin-bottom:30px; line-height:1.5; }
+    .options { display:flex; flex-direction:column; gap:15px; }
+    .option { 
+        padding:18px 20px; font-size:1.4rem; border-radius:12px; cursor:pointer; 
+        transition:all 0.3s ease; transform:translateY(0); text-align:right; direction:rtl;
+    }
+    .option:nth-child(1){background:#e3f2fd; border:2px solid #bbdefb;}
+    .option:nth-child(2){background:#e8f5e9; border:2px solid #c8e6c9;}
+    .option:nth-child(3){background:#fff3e0; border:2px solid #ffe0b2;}
+    .option:nth-child(4){background:#f3e5f5; border:2px solid #e1bee7;}
+
+    .option:hover { transform:translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.15); }
+    .option.correct { background:#4caf50 !important; color:white; border:none !important; animation:pulse 0.6s; }
+    .option.wrong { background:#f44336 !important; color:white; border:none !important; }
+    .option.disabled { pointer-events:none; opacity:0.7; }
+
+    .next-btn, .restart-btn {
+        margin-top:30px; padding:14px 30px; background:#667eea; color:white; 
+        border:none; border-radius:50px; font-size:1.3rem; cursor:pointer;
+        transition:0.3s; align-self:center;
+    }
+    .next-btn:hover, .restart-btn:hover { background:#5a67d8; transform:scale(1.05); }
+
+    .result { text-align:center; padding:40px 20px; font-size:2rem; font-weight:bold; color:#333; }
+    .score { font-size:3rem; color:#667eea; margin:20px 0; }
+
+    @keyframes pulse {
+        0% { transform:scale(1); }
+        50% { transform:scale(1.05); }
+        100% { transform:scale(1); }
+    }
+</style>
+</head>
+<body>
+
+<div class="quiz-container">
+    <div class="header">
+        آزمون ریاضی
+        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+        <div id="progressText">سؤال ۱ از ۱۰</div>
+    </div>
+
+    <div class="question-container" id="quiz">
+        <!-- سوالات اینجا با JS تزریق می‌شوند -->
+    </div>
+</div>
+
+<script>
+const questions = [
+    {
+        question: "حاصل عبارت زیر چند است؟<br>۸ × (۱۲ - ۵) + ۱۸ ÷ ۳",
+        options: ["۶۲", "۵۶", "۷۴", "۴۸"],
+        correct: 1 // اندیس گزینه درست (از ۰ شروع می‌شود)
+    },
+    {
+        question: "اگر x = ۵ باشد، مقدار ۳x² - ۴x + ۷ چند می‌شود؟",
+        options: ["۶۸", "۵۲", "۷۲", "۶۰"],
+        correct: 0
+    },
+    {
+        question: "مساحت مربعی با محیط ۴۸ سانتی‌متر چند است؟",
+        options: ["۱۴۴ سانتی‌متر مربع", "۱۹۲ سانتی‌متر مربع", "۱۲۲ سانتی‌متر مربع", "۲۳۰۴ سانتی‌متر مربع"],
+        correct: 0
+    },
+    {
+        question: "کدام عدد اول نیست؟",
+        options: ["۹۷", "۸۹", "۹۱", "۸۳"],
+        correct: 2
+    },
+    {
+        question: "حاصل ۲/۳ + ۵/۶ - ۱/۲ چند است؟",
+        options: ["۱", "۳/۴", "۵/۶", "۷/۱۲"],
+        correct: 0
+    },
+    {
+        question: "اگر ۳۵٪ یک عدد ۴۲ باشد، آن عدد چند است؟",
+        options: ["۱۲۰", "۱۴۰", "۱۰۰", "۱۵۰"],
+        correct: 0
+    },
+    {
+        question: "حاصل ریشه دوم ۱۴۴ + ریشه سوم ۶۴ چند است؟",
+        options: ["۲۰", "۱۶", "۱۸", "۲۸"],
+        correct: 0
+    },
+    {
+        question: "در یک کلاس ۳۰ نفره، ۶۰٪ دانش‌آموزان دختر هستند. تعداد پسران چند نفر است؟",
+        options: ["۱۲", "۱۸", "۱۰", "۱۴"],
+        correct: 0
+    },
+    {
+        question: "کدام عبارت با عدد ۴۸ برابر است؟",
+        options: ["۶ × ۸", "۷ × ۷", "۵ × ۹", "۴ × ۱۲"],
+        correct: 1
+    },
+    {
+        question: "اگر a = ۴ و b = -۳ باشد، مقدار |a - b| + a × b چند است؟",
+        options: ["-۵", "۷", "۱۹", "۵"],
+        correct: 1
+    }
+];
+
+let currentQuestion = 0;
+let score = 0;
+let selectedOption = null;
+
+const quizDiv = document.getElementById('quiz');
+const progressBar = document.getElementById('progressBar');
+const progressText = document.getElementById('progressText');
+
+function loadQuestion() {
+    const q = questions[currentQuestion];
+    quizDiv.innerHTML = `
+        <div class="question">${q.question}</div>
+        <div class="options">
+            ${q.options.map((opt, i) => `
+                <div class="option" data-index="${i}">${opt}</div>
+            `).join('')}
+        </div>
+    `;
+
+    document.querySelectorAll('.option').forEach(option => {
+        option.addEventListener('click', handleOptionClick);
+    });
+
+    progressText.textContent = `سؤال ${currentQuestion + 1} از ${questions.length}`;
+    progressBar.style.width = `${((currentQuestion + 1) / questions.length) * 100}%`;
+}
+
+function handleOptionClick(e) {
+    if (selectedOption !== null) return;
+    selectedOption = parseInt(e.target.dataset.index);
+    const correct = questions[currentQuestion].correct;
+
+    document.querySelectorAll('.option').forEach((opt, i) => {
+        opt.classList.add('disabled');
+        if (i === correct) {
+            opt.classList.add('correct');
+        } else if (i === selectedOption) {
+            opt.classList.add('wrong');
+        }
+    });
+
+    if (selectedOption === correct) {
+        score += 2;
+    }
+
+    setTimeout(() => {
+        currentQuestion++;
+        selectedOption = null;
+        if (currentQuestion < questions.length) {
+            loadQuestion();
+        } else {
+            showResult();
+        }
+    }, 1200);
+}
+
+function showResult() {
+    quizDiv.innerHTML = `
+        <div class="result">
+            آزمون به پایان رسید!
+            <div class="score">${score} از ۲۰</div>
+            <button class="restart-btn" onclick="restartQuiz()">شروع مجدد آزمون</button>
+        </div>
+    `;
+    document.querySelector('.progress-bar').style.width = '100%';
+}
+
+function restartQuiz() {
+    currentQuestion = 0;
+    score = 0;
+    selectedOption = null;
+    loadQuestion();
+}
+
+loadQuestion();
+</script>
+</body>
+</html>
